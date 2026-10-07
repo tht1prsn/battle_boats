@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/join_lobby.dart';
+// new import for google fonts 
+import 'package:google_fonts/google_fonts.dart';
 
 // when the player creates or joins a lobby
 // collects the join code, start screen is the one that does the joining
@@ -14,10 +16,23 @@ class StartScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // maybe we can come in and make the font cool later
+            // making font better
             Text('BattleBoats',
-                style: Theme.of(context).textTheme.displayMedium),
-            const SizedBox(height: 48),
+                style:  GoogleFonts.blackOpsOne(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                ),
+            ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                // new aqua color
+                backgroundColor: const Color(0xFFC7F5EE), 
+                foregroundColor: Colors.black,
+                side: const BorderSide(color: Colors.black),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+              ),
               onPressed: () async {
                 // join code popup stuffs
                 final code = await showDialog<String>(
@@ -32,6 +47,15 @@ class StartScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                // new blue
+                backgroundColor: const Color(0xFFCFE0FB), 
+                foregroundColor: Colors.black,
+                side: const BorderSide(color: Colors.black),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+              ),
               onPressed: () {
                 // going to put the next screen here
               },
