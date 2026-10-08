@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/join_lobby.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:battle_boats/screens/end_screen.dart';
 
 // when the player creates or joins a lobby
 // collects the join code, start screen is the one that does the joining
@@ -13,11 +15,26 @@ class StartScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // maybe we can come in and make the font cool later
-            Text('BattleBoats',
-                style: Theme.of(context).textTheme.displayMedium),
+            // same font as the end screen so the app feels consistent
+            Text(
+              'BattleBoats',
+              style: GoogleFonts.blackOpsOne(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            // size fixing
             const SizedBox(height: 48),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                // aqua to match wireframe
+                backgroundColor: const Color(0xFFC7F5EE),
+                foregroundColor: Colors.black,
+                side: const BorderSide(color: Colors.black),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+              ),
               onPressed: () async {
                 // join code popup stuffs
                 final code = await showDialog<String>(
@@ -32,8 +49,24 @@ class StartScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                // blue to match wireframe
+                backgroundColor: const Color(0xFFCFE0FB),
+                foregroundColor: Colors.black,
+                side: const BorderSide(color: Colors.black),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+              ),
               onPressed: () {
                 // going to put the next screen here
+                // temp take us to end screen so we know everything works
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const EndScreen(winPlayerNum: 1),
+                  ),
+                );
               },
               child: const Text('Create Lobby'),
             ),
