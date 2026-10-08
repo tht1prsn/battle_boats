@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "214816314000",
+    "project_id": "battle-boats-firebase",
+    "storage_bucket": "battle-boats-firebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:214816314000:android:aadc62c0e3066dca197e15",
+        "android_client_info": {
+          "package_name": "com.example.battle_boats"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPfbQH-qbb7OOQKDwnTiQrPZTjo4e5AJA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
