@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 // what each cell in the grid could be
 enum CellState { water, boat, hit, miss }
 
@@ -26,7 +25,7 @@ class BoardGrid extends StatelessWidget {
         // https://api.flutter.dev/flutter/widgets/NeverScrollableScrollPhysics-class.html
         // the board shouldnt scroll
         physics: const NeverScrollableScrollPhysics(),
-        // lays cells out in columns 
+        // lays cells out in columns
         // https://api.flutter.dev/flutter/rendering/SliverGridDelegateWithFixedCrossAxisCount-class.html
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: size,
