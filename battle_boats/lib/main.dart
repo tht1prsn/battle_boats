@@ -26,10 +26,6 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: StartScreen(),
-      home: const StartScreen(),
-
-      // testing end screen
-      // home: const EndScreen(winPlayerNum: 1)
     );
   }
 }
