@@ -36,6 +36,7 @@ class _GameScreenState extends State<GameScreen> {
     _enemyCells = _emptyBoard();
     _myCells = _emptyBoard();
     // sample cells to show every color
+    // these are temp
     _myCells[0][0] = CellState.boat;
     _myCells[0][1] = CellState.boat;
     _myCells[2][3] = CellState.hit;

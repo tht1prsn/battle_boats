@@ -2,7 +2,8 @@ import 'package:battle_boats/services/game_services.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/join_lobby.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:battle_boats/screens/end_screen.dart';
+// import 'package:battle_boats/screens/end_screen.dart';
+import 'package:battle_boats/screens/game_screen.dart';
 
 // when the player creates or joins a lobby
 // collects the join code, start screen is the one that does the joining
@@ -43,8 +44,31 @@ class StartScreen extends StatelessWidget {
                   builder: (_) => const JoinLobbyDialog(),
                 );
                 if (code == null || !context.mounted) return;
-                debugPrint('Joining lobby $code');
-                // still waiting for navigation to gamescreen through our wip join function
+                try {
+                  // asks to add us as player 2
+                  await GameServices().joinGame(code);
+                  if (!context.mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          GameScreen(lobbyCode: code, playerNumber: 2),
+                    ),
+                  );
+                } on GameException catch (e) {
+                  // wrong code or full game, message comes from game_services
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(e.message)));
+                } catch (_) {
+                  // any other bad things to catch from Firebase
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Something went wrong. Try again.'),
+                    ),
+                  );
+                }
               },
               child: const Text('Join Lobby'),
             ),
@@ -59,16 +83,29 @@ class StartScreen extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(4)),
                 ),
               ),
-              onPressed: () {
-                // going to put the next screen here
-                // temp take us to end screen so we know everything works
+              onPressed: () async {
+              try {
+                // makes a new game and gives its code
+                // whoever does this become player 1
+                final code = await GameServices().createGame();
+                if (!context.mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const EndScreen(winPlayerNum: 1),
+                    builder: (_) => GameScreen(lobbyCode: code, playerNumber: 1),
                   ),
                 );
-              },
+              } on GameException catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(e.message)));
+              } catch (_) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Something went wrong. Try again.')),
+                );
+              }
+            },
               child: const Text('Create Lobby'),
             ),
           ],
