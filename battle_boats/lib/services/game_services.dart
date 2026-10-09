@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:battle_boats/constants.dart';
 
 //if there are any issues running app, we can throw a game exception
 class GameException implements Exception {

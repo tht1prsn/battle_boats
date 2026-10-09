@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/board_grid.dart';
+import 'package:battle_boats/constants.dart';
 
-// board size for editing
+// board size for editing, *this is now stored in lib/constants.dart
 // we can bring it from 5x5 to something fancier
-const int boardSize = 5;
+//const int boardSize = 5;
 
 // main play screen
 class GameScreen extends StatefulWidget {
