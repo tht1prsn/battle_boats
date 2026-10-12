@@ -4,7 +4,7 @@ const int boardCells = boardSize * boardSize;
 const int boatCount = 3; //starting small
 
 
-/// True when every boat cell (value 1) on [board] appears in [shots].
+/// True when every boat cell (value 1) on board appears in shots.
 /// Boards are flat lists: 0 = water, 1 = boat.
 bool allBoatsHit(List<int> board, Iterable<int> shots) {
   final fired = shots.toSet();
@@ -15,3 +15,7 @@ bool allBoatsHit(List<int> board, Iterable<int> shots) {
   // Guard: a board with no boats can never count as "all hit".
   return boats.isNotEmpty && boats.every(fired.contains);
 }
+
+//a flat list index for a grid position so grid can translate to firestore
+// the reverse is: row = index / boardSize, col = index % boardSize
+int cellIndex(int row, int col) => row * boardSize + col;

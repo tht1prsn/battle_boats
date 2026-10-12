@@ -6,7 +6,7 @@ class EndScreen extends StatelessWidget {
   const EndScreen({super.key, required this.winPlayerNum});
 
   // we want the lobby creator to be P1 and the joiner P2
-  final int winPlayerNum;
+  final int? winPlayerNum;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class EndScreen extends StatelessWidget {
           children: [
             // displays winner with fancy font
             Text(
-              'Player $winPlayerNum wins!',
+              winPlayerNum == null ? 'Draw!' : 'Player $winPlayerNum wins!',
               style: GoogleFonts.blackOpsOne(
                 fontSize: 48,
                 fontWeight: FontWeight.bold,

@@ -32,11 +32,24 @@ class GameServices {
   //a fresh player
   Map<String, dynamic> _player(String? uid) => {
     'uid': uid,
-    //25 spots for a 5x5 grid
-    'board': List<int>.filled(25,0),
+    //25 spots for a 5x5 grid (boardCells is from constants.dart)
+    'board': List<int>.filled(boardCells,0),
     'ready': false,
     'shots': <int>[],
+    //shots are pending until other player finishes round
+    'pending': <int>[],
     'submittedRound': 0,
+    'wantsRematch': false,
+  };
+
+  //if a rematch happens the board goes back to starting values
+  Map<String, dynamic> _resetFields(String role) => {
+    '$role.board': List<int>.filled(boardCells, 0),
+    '$role.ready': false,
+    '$role.shots': <int>[],
+    '$role.pending': <int>[],
+    '$role.submittedRound': 0,
+    '$role.wantsRematch': false,
   };
 
 
@@ -126,6 +139,8 @@ class GameServices {
           enemyReady: theirs['ready'] == true,
           iSubmitted: mine['submittedRound'] == round,
           enemySubmitted: theirs['submittedRound'] == round,
+          iWantRematch: mine['wantsRematch'] == true,
+          enemyWantsRematch: theirs['wantsRematch'] == true,
         );
       });
   }
@@ -202,6 +217,35 @@ class GameServices {
         if (iWon || theyWon)
           'winner': (iWon && theyWon) ? 'draw' : (iWon ? me : enemy),
       });
+    });
+  }
+
+  //onces game finishes, ask for rematch, when both players ask
+  //the game resets to the placing phase w same two players
+  Future<void> requestRematch(String code) async {
+    final ref = _db.collection('games').doc(code);
+    await _db.runTransaction((transaction) async {
+      final snap = await transaction.get(ref);
+      if (!snap.exists) throw GameException('No game with that code.');
+      final data = snap.data()!;
+      if (data['status'] != 'finished') {
+        throw GameException('The game is not finished.');
+      }
+      final me = _roleOf(data);
+      final enemy = _other(me);
+ 
+      if (data[enemy]['wantsRematch'] == true) {
+        // both want one: reset everything for a fresh game
+        transaction.update(ref, {
+          'status': 'placing',
+          'round': 1,
+          'winner': null,
+          ..._resetFields('p1'),
+          ..._resetFields('p2'),
+        });
+      } else {
+        transaction.update(ref, {'$me.wantsRematch': true});
+      }
     });
   }
 }
