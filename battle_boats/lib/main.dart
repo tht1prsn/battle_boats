@@ -1,3 +1,4 @@
+import 'package:battle_boats/screens/testing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/screens/start_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -15,7 +16,7 @@ await Firebase.initializeApp (
 if (FirebaseAuth.instance.currentUser == null) {
   await FirebaseAuth.instance.signInAnonymously();
 }
-runApp(const MainApp());
+  runApp(const MainApp());
 }
 
 
@@ -25,7 +26,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: StartScreen(),
+      home: TestingScreen(),
     );
   }
 }
