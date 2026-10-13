@@ -2,49 +2,45 @@ import 'package:flutter/material.dart';
 
 
 //https://api.flutter.dev/flutter/widgets/Draggable-class.html
-class DraggableBoat extends StatefulWidget {
-  const DraggableBoat({super.key});
+class DraggableBoat extends StatelessWidget {
+  const DraggableBoat({
+    super.key,
+    required this.cellSize,
+  });
+
+  final Size cellSize;
 
   @override
-  State<DraggableBoat> createState() => _DraggableBoatState();
-}
+  Widget build(BuildContext context) {
+    const boatLength = 3;
 
-class _DraggableBoatState extends State<DraggableBoat> {
-  int boatLength = 2;
-  //separate class for individual boat pieces
-  List<Widget> boats = List.empty(growable: true);
-
-  @override
-  void initState()
-  {
-    super.initState();
-
-    for(int i = 0; i < boatLength; ++i)
-    {
-      boats.add(
-        ColoredBox(
-          color: Colors.purple,
-          child: SizedBox(
-            width: 100,
-            height: 100
-          )
-        )
-      );
-    }
-
+    return Draggable<String>(
+      data: 'boat',
+      feedback: Container(
+        width: cellSize.width * boatLength,
+        height: cellSize.height,
+        decoration: BoxDecoration(
+          color: Colors.brown,
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _buildBoat(),
+      ),
+      child: _buildBoat(),
+    );
   }
 
-  @override 
-  Widget build(BuildContext context)
-  {
-    return 
-    Draggable<int>(
-      data: 1,
-      feedback: Flex(
-        direction: Axis.horizontal, children: [...boats]
-      ), 
-      child: Flex(
-        direction: Axis.horizontal, children: [...boats]
+  Widget _buildBoat() {
+    return Container(
+      width: cellSize.width * 3,
+      height: cellSize.height,
+      decoration: BoxDecoration(
+        color: Colors.brown,
+        border: Border.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(8),
       ),
     );
   }

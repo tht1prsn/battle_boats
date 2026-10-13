@@ -6,49 +6,65 @@ enum CellState { water, boat, hit, miss }
 // want to draw a grid of cells, report what gets tapped
 // use variable to keep the grid size flexible
 class BoardGrid extends StatelessWidget {
-  const BoardGrid({super.key, required this.cells, this.onCellTap});
+  const BoardGrid({
+    super.key,
+    required this.cells,
+    this.onCellTap,
+    this.onCellSizeChanged,
+  });
 
-  // rows must be as long as the grid is tall
   final List<List<CellState>> cells;
-
-  // called with the tapped cell's row and column
-  // null makes the board read-only like your own board
   final void Function(int row, int col)? onCellTap;
+  final ValueChanged<Size>? onCellSizeChanged;
 
   @override
   Widget build(BuildContext context) {
-    final size = cells.length;
-    // https://api.flutter.dev/flutter/widgets/AspectRatio-class.html
-    return AspectRatio(
-      aspectRatio: 1,
-      child: GridView.builder(
-        // https://api.flutter.dev/flutter/widgets/NeverScrollableScrollPhysics-class.html
-        // the board shouldnt scroll
-        physics: const NeverScrollableScrollPhysics(),
-        // lays cells out in columns
-        // https://api.flutter.dev/flutter/rendering/SliverGridDelegateWithFixedCrossAxisCount-class.html
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: size,
-        ),
-        itemCount: size * size,
-        itemBuilder: (context, index) {
-          final row = index ~/ size;
-          final col = index % size;
-          return GestureDetector(
-            onTap: onCellTap == null ? null : () => onCellTap!(row, col),
-            child: Container(
-              decoration: BoxDecoration(
-                color: _cellColor(cells[row][col]),
-                border: Border.all(color: Colors.black),
-              ),
+    final count = cells.length;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boardSize = constraints.maxWidth < constraints.maxHeight
+            ? constraints.maxWidth
+            : constraints.maxHeight;
+
+        final cellSize = boardSize / count;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          onCellSizeChanged?.call(Size(cellSize, cellSize));
+        });
+
+        return SizedBox.square(
+          dimension: boardSize,
+          child: GridView.builder(
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: count,
+              childAspectRatio: 1,
             ),
-          );
-        },
-      ),
+            itemCount: count * count,
+            itemBuilder: (context, index) {
+              final row = index ~/ count;
+              final col = index % count;
+
+              return GestureDetector(
+                onTap: onCellTap == null
+                    ? null
+                    : () => onCellTap!(row, col),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _cellColor(cells[row][col]),
+                    border: Border.all(color: Colors.black),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  // color for each state of the cells
   Color _cellColor(CellState state) {
     return switch (state) {
       CellState.water => Colors.lightBlue.shade100,
