@@ -72,6 +72,17 @@ class _TestingScreenState extends State<TestingScreen> {
                                   
                                   {
                                     setState(() {
+                                      for(int i = 0; i < placed.boat.length; ++i)
+                                      {
+                                        if(placed.boat.direction == BoatOrientation.Horizontal)
+                                        {
+                                          mycells[placed.row][placed.col+i] = CellState.water;
+                                        }
+                                        else
+                                        {
+                                          mycells[placed.row+i][placed.col] = CellState.water;
+                                        }
+                                      }
                                       placedBoats.remove(placed);
                                     });
                                   }

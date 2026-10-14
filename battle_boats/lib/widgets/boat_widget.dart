@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 
-enum BoatOrientation {Horizontal, Vertical}
+enum BoatOrientation { Horizontal, Vertical }
 
-
-class BoatState 
-{
+class BoatState {
   BoatState(this.length, this.direction);
+
   int length;
   BoatOrientation direction;
 }
 
-
-//https://api.flutter.dev/flutter/widgets/Draggable-class.html
-class DraggableBoat extends StatelessWidget {
-
-  DraggableBoat({
+class DraggableBoat extends StatefulWidget {
+  const DraggableBoat({
     super.key,
     required this.cellSize,
   });
@@ -22,32 +18,61 @@ class DraggableBoat extends StatelessWidget {
   final Size cellSize;
 
   @override
-  Widget build(BuildContext context) {
-    const boatLength = 3;
+  State<DraggableBoat> createState() => _DraggableBoatState();
+}
 
-    return Draggable<BoatState>(
-      data: BoatState(boatLength, BoatOrientation.Horizontal),
-      feedback: Container(
-        width: cellSize.width * boatLength,
-        height: cellSize.height,
-        decoration: BoxDecoration(
-          color: Colors.brown,
-          border: Border.all(color: Colors.black),
-          borderRadius: BorderRadius.circular(8),
+class _DraggableBoatState extends State<DraggableBoat> {
+  static const int boatLength = 3;
+
+  BoatOrientation _orientation = BoatOrientation.Horizontal;
+
+  void _rotateBoat() {
+    setState(() {
+      _orientation = _orientation == BoatOrientation.Horizontal
+          ? BoatOrientation.Vertical
+          : BoatOrientation.Horizontal;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isHorizontal =
+        _orientation == BoatOrientation.Horizontal;
+
+    final Size boatSize = isHorizontal
+        ? Size(
+            widget.cellSize.width * boatLength,
+            widget.cellSize.height,
+          )
+        : Size(
+            widget.cellSize.width,
+            widget.cellSize.height * boatLength,
+          );
+
+    return GestureDetector(
+      onLongPress: _rotateBoat,
+      child: Draggable<BoatState>(
+        dragAnchorStrategy: (draggable, context, position) {
+          return Offset(
+            boatSize.width / 2,
+            boatSize.height / 2,
+          );
+        },
+        data: BoatState(boatLength, _orientation),
+        feedback: _buildBoat(boatSize),
+        childWhenDragging: Opacity(
+          opacity: 0.3,
+          child: _buildBoat(boatSize),
         ),
+        child: _buildBoat(boatSize),
       ),
-      childWhenDragging: Opacity(
-        opacity: 0.3,
-        child: _buildBoat(),
-      ),
-      child: _buildBoat(),
     );
   }
 
-  Widget _buildBoat() {
+  Widget _buildBoat(Size size) {
     return Container(
-      width: cellSize.width * 3,
-      height: cellSize.height,
+      width: size.width,
+      height: size.height,
       decoration: BoxDecoration(
         color: Colors.brown,
         border: Border.all(color: Colors.black),
@@ -58,10 +83,13 @@ class DraggableBoat extends StatelessWidget {
 }
 
 class PlacedBoat {
-  PlacedBoat({required this.boat, required this.row, required this.col});
+  PlacedBoat({
+    required this.boat,
+    required this.row,
+    required this.col,
+  });
 
   final BoatState boat;
   final int row;
   final int col;
-  
 }

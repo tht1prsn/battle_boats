@@ -1,6 +1,7 @@
 import 'package:battle_boats/widgets/boat_widget.dart';
 import 'package:flutter/material.dart';
 
+
 // what each cell in the grid could be
 enum CellState { water, boat, hit, miss }
 enum BoardMode {
@@ -82,11 +83,49 @@ class BoardGrid extends StatelessWidget {
                 cellChild = DragTarget<BoatState>(
                   onWillAcceptWithDetails: (details) {
                     // Add placement validation next.
+
+                    //bounds check + 
+                    if(details.data.direction == BoatOrientation.Vertical)
+                    {
+                      if (row+details.data.length>size) {
+                        return false;
+                      }
+                      for(int i = 0; i < details.data.length; ++i)
+                      {
+                        if(cells[row+i][col] == CellState.boat) {
+                          return false;
+                        }
+                      }
+                    } else if(details.data.direction == BoatOrientation.Horizontal)
+                    {
+                      if (col+details.data.length>size) {
+                        return false;
+                      }
+                      for(int i = 0; i < details.data.length; ++i)
+                      {
+                        if(cells[row][col+i] == CellState.boat) {
+                          return false;
+                        }
+                      }
+                    }
+                    else {return false;}
+
                     return true;
                     
                   },
                   onAcceptWithDetails: (details) {
                     onBoatDropped?.call(row, col, details.data);
+                    for(int i = 0; i < details.data.length; ++i)
+                    {
+                      if(details.data.direction == BoatOrientation.Horizontal)
+                      {
+                        cells[row][col+i] = CellState.boat;
+                      }
+                      else
+                      {
+                        cells[row+i][col] = CellState.boat;
+                      }
+                    }
                   },
                   builder: (context, candidates, rejected) {
                     return Container(
