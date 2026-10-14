@@ -1,3 +1,4 @@
+import 'package:battle_boats/widgets/boat_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/board_grid.dart';
 
@@ -11,12 +12,19 @@ class GameScreen extends StatefulWidget {
     super.key,
     required this.lobbyCode,
     required this.playerNumber,
+    required this._myCells,
+    required this.playerBoard
   });
 
   final String lobbyCode;
 
   // creator is P1, joiner is P2
   final int playerNumber;
+
+  final List<List<CellState>> _myCells;
+
+  final List<PlacedBoat> playerBoard;
+
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -27,20 +35,12 @@ class _GameScreenState extends State<GameScreen> {
   late List<List<CellState>> _enemyCells;
 
   // your own board, boats included
-  late List<List<CellState>> _myCells;
 
   @override
   void initState() {
     super.initState();
     // placeholder boards until logic happens
     _enemyCells = _emptyBoard();
-    _myCells = _emptyBoard();
-    // sample cells to show every color
-    // these are temp
-    _myCells[0][0] = CellState.boat;
-    _myCells[0][1] = CellState.boat;
-    _myCells[2][3] = CellState.hit;
-    _myCells[4][4] = CellState.miss;
   }
 
   List<List<CellState>> _emptyBoard() {
@@ -81,8 +81,8 @@ class _GameScreenState extends State<GameScreen> {
             Expanded(
               child: _BoardPanel(
                 label: 'Your boats',
-                mode: BoardMode.placement,
-                child: BoardGrid(cells: _myCells),
+                mode: BoardMode.readOnly,
+                child: BoardGrid(cells: widget._myCells),
               ),
             ),
           ],

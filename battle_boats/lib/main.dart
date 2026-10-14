@@ -1,3 +1,4 @@
+import 'package:battle_boats/screens/setup_screen.dart';
 import 'package:battle_boats/screens/testing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/screens/start_screen.dart';
@@ -26,7 +27,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: TestingScreen(),
+      home: StartScreen()
     );
   }
 }

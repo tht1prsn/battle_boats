@@ -1,3 +1,4 @@
+import 'package:battle_boats/screens/setup_screen.dart';
 import 'package:battle_boats/services/game_services.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/join_lobby.dart';
@@ -52,7 +53,7 @@ class StartScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) =>
-                          GameScreen(lobbyCode: code, playerNumber: 2),
+                          SetupScreen(lobbyCode: code, playerNumber: 2),
                     ),
                   );
                 } on GameException catch (e) {
@@ -92,7 +93,7 @@ class StartScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => GameScreen(lobbyCode: code, playerNumber: 1),
+                    builder: (_) => SetupScreen(lobbyCode: code, playerNumber: 1),
                   ),
                 );
               } on GameException catch (e) {
