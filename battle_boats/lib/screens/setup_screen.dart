@@ -11,14 +11,11 @@ const int boardSize = 5;
 
 // main play screen
 class SetupScreen extends StatefulWidget {
-  const SetupScreen({
+  SetupScreen({
     super.key,
-    required this.lobbyCode,
-    required this.playerNumber,
+    required this.myCells
   });
-
-  final String lobbyCode;
-  final int playerNumber;
+  late List<List<CellState>> myCells;
 
   @override
   State<SetupScreen> createState() => _SetupScreenState();
@@ -28,7 +25,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Size? cellSize = Size(50, 50);
   // your own board, boats included
-  late List<List<CellState>> myCells;
+  
 
 
   late List<DraggableBoat> fleet;
@@ -39,7 +36,7 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   void initState() {
     super.initState();
-    myCells = _emptyBoard();
+    widget.myCells = _emptyBoard();
 
     fleet = [
       DraggableBoat(boatLength: 3, cellSize: cellSize!, id: "1"),
@@ -64,6 +61,23 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
+  List<int> _buildBoard() {
+  final board = List<int>.filled(boardSize * boardSize, 0);
+
+  for (final placed in placedBoats) {
+    for (int i = 0; i < placed.boat.length; i++) {
+      final row = placed.row +
+          (placed.boat.direction == BoatOrientation.Vertical ? i : 0);
+      final col = placed.col +
+          (placed.boat.direction == BoatOrientation.Horizontal ? i : 0);
+
+      board[row * boardSize + col] = 1;
+    }
+  }
+
+  return board;
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +86,6 @@ class _SetupScreenState extends State<SetupScreen> {
         child: Column(
           children: [
             const SizedBox(height: 8),
-            Text('Lobby code: ${widget.lobbyCode}'),
             Expanded(
               child:_BoardPanel(
                     mode: BoardMode.placement,
@@ -83,7 +96,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       children: [
                         Positioned.fill(
                           child: BoardGrid(
-                            cells: myCells,
+                            cells: widget.myCells,
                             mode: BoardMode.placement,
                             onBoatDropped: placeBoat,
                           ),
@@ -114,11 +127,11 @@ class _SetupScreenState extends State<SetupScreen> {
                                       {
                                         if(placed.boat.direction == BoatOrientation.Horizontal)
                                         {
-                                          myCells[placed.row][placed.col+i] = CellState.water;
+                                          widget.myCells[placed.row][placed.col+i] = CellState.water;
                                         }
                                         else
                                         {
-                                          myCells[placed.row+i][placed.col] = CellState.water;
+                                          widget.myCells[placed.row+i][placed.col] = CellState.water;
                                         }
                                       }
                                       fleet.add(fleetCopy.firstWhere((b) => b.id == placed.boat.id));
@@ -153,10 +166,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   onPressed: fleet.isEmpty ? () {
                     // move to game screen
 
-                    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) 
-                    { 
-                      return GameScreen(lobbyCode: widget.lobbyCode, playerNumber: widget.playerNumber, myCells: myCells, playerBoard: placedBoats);
-                    }));
+                    Navigator.pop(context, _buildBoard());
 
                   } : null,
                   style: ElevatedButton.styleFrom(

@@ -1,7 +1,7 @@
 //this file stores the constants of the game state so all files can access it
 const int boardSize = 5;
 const int boardCells = boardSize * boardSize;
-const int boatCount = 3; //starting small
+const int boatCount = 6; //starting small
 
 
 /// True when every boat cell (value 1) on board appears in shots.

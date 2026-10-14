@@ -1,5 +1,6 @@
 import 'dart:async'; 
 import 'package:battle_boats/screens/end_screen.dart';
+import 'package:battle_boats/screens/setup_screen.dart' hide boardSize;
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/board_grid.dart';
 import 'package:battle_boats/constants.dart';
@@ -46,6 +47,7 @@ class _GameScreenState extends State<GameScreen> {
   // should be true from turn ended until round closes
   bool _submitting = false;
   bool _endScreenShown = false;
+  bool _setupScreenShown = false;
   int _lastRound = 1;
 
   @override
@@ -83,27 +85,11 @@ class _GameScreenState extends State<GameScreen> {
   // until then. s.myCells() shows your boats plus the enemy's hits and misses
   // s.enemyCells(_roundShots) shows the shots you have fired.
 
-  void _onGameState(GameState s) {
+  Future<void> _onGameState(GameState s) async {
     if (!mounted) return;
 
     final isFinished = s.status == 'finished';
     final wasFinshed = _state?.status == 'finished';
-
-
-    setState(() {
-      // a rematch resets the game: finished -> placing
-      final restarted = s.status == 'placing' && _state?.status == 'finished';
-      // new round (or restart): forget this round's local shots
-      if (s.round != _lastRound || restarted) {
-        _roundShots.clear();
-        _submitting = false;
-        _lastRound = s.round;
-      }
-      if (restarted) {_placed.clear(); _endScreenShown = false;}
-      _state = s;
-      _refreshBoards();
-     
-    });
 
     if(isFinished && !wasFinshed && !_endScreenShown)
     {
@@ -123,12 +109,83 @@ class _GameScreenState extends State<GameScreen> {
         ));
       });
     }
+    else if (s.status == 'placing' && !s.iAmReady) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+        _openSetupScreen();
+      });
+    }
+
+    setState(() {
+      // a rematch resets the game: finished -> placing
+      final restarted = s.status == 'placing' && _state?.status == 'finished';
+      // new round (or restart): forget this round's local shots
+      if (s.round != _lastRound || restarted) {
+        _roundShots.clear();
+        _submitting = false;
+        _lastRound = s.round;
+      }
+      if (restarted) {_placed.clear(); _endScreenShown = false;}
+      _state = s;
+      _refreshBoards();
+     
+    });
   }
+  Future<void> _openSetupScreen() async {
+    if (_setupScreenShown || !mounted) return;
+
+    _setupScreenShown = true;
+
+    final board = await Navigator.of(context).push<List<int>>(
+      MaterialPageRoute(
+        builder: (_) => SetupScreen(myCells: _myCells),
+      ),
+    );
+
+    if (!mounted) return;
+
+    // The player cancelled or backed out.
+    if (board == null || board!.isEmpty) {
+      _setupScreenShown = false;
+      return;
+    }
+
+    // Keep the local board in sync with the returned boat positions.
+    setState(() {
+      _placed
+        ..clear()
+        ..addAll(
+          List.generate(board.length, (i) => i)
+              .where((i) => board[i] == 1),
+        );
+
+      _myCells = _emptyBoard();
+
+      for (final i in _placed) {
+        _myCells[i ~/ boardSize][i % boardSize] = CellState.boat;
+      }
+    });
+
+    // Submit the actual board to Firestore.
+    final success = await _run(
+      () => _service.submitBoard(widget.lobbyCode, board),
+    );
+
+    if (!mounted) return;
+
+    if (!success) {
+      _setupScreenShown = false;
+    }
+  }
+
+  
+  
 
     // rebuilds the two grids from the current phase
   void _refreshBoards() {
     final s = _state;
     if (s == null) return;
+
     if (s.status == 'placing') {
       // your own board shows the boats you are placing until you submit
       _myCells = s.iAmReady ? s.myCells() : _placementCells();
@@ -213,6 +270,7 @@ class _GameScreenState extends State<GameScreen> {
       _state!.status == 'playing' &&
       !_state!.iSubmitted &&
       !_submitting;
+      
 
    void _fireAt(int row, int col) {
     final s = _state;
