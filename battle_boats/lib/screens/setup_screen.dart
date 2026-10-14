@@ -1,4 +1,4 @@
-//Ready for cherrypick
+//cherrypick
 
 import 'package:battle_boats/screens/game_screen.dart';
 import 'package:battle_boats/widgets/boat_widget.dart';
