@@ -1,6 +1,5 @@
 import 'package:battle_boats/widgets/board_grid.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:battle_boats/widgets/boat_widget.dart';
 
 // the screen to show which player wins
@@ -12,17 +11,34 @@ class TestingScreen extends StatefulWidget {
 }
 
 class _TestingScreenState extends State<TestingScreen> {
+  Size? cellSize = Size(50, 50);
+
+  late List<DraggableBoat> fleet;
+  late List<DraggableBoat> fleetCopy;
   final List<PlacedBoat> placedBoats = [];
+  final Set<String> placedBoatIds = {};
   final List<List<CellState>> mycells = List.generate(
     5,
     (_) => List.filled(5, CellState.water),
   );
 
-  Size? cellSize = Size(50, 50);
+  @override
+  void initState()
+  {
+    super.initState();
+    fleet = [
+      DraggableBoat(boatLength: 3, cellSize: cellSize!, id: "1"),
+      DraggableBoat(boatLength: 1, cellSize: cellSize!, id: "2"),
+      DraggableBoat(boatLength: 2, cellSize: cellSize!, id: "3")
+    ];
+    fleetCopy = fleet.toList();
+  }
 
   void placeBoat(int row, int col, BoatState boat) {
+    placedBoatIds.add(boat.id);
     setState(() {
       placedBoats.add(PlacedBoat(boat: boat, row: row, col: col));
+      fleet.remove(fleet.firstWhere((b) => b.id == boat.id));
     });
   }
 
@@ -83,7 +99,10 @@ class _TestingScreenState extends State<TestingScreen> {
                                           mycells[placed.row+i][placed.col] = CellState.water;
                                         }
                                       }
+                                      fleet.add(fleetCopy.firstWhere((b) => b.id == placed.boat.id));
+                                      placedBoatIds.remove(placed.boat.id);
                                       placedBoats.remove(placed);
+
                                     });
                                   }
                                 },
@@ -95,7 +114,9 @@ class _TestingScreenState extends State<TestingScreen> {
                   )
                 ),
               ),
-              DraggableBoat(cellSize: cellSize!)
+              Row(
+                children: [...fleet],
+              )
             ],
           ),
         ),

@@ -83,6 +83,7 @@ class BoardGrid extends StatelessWidget {
                 cellChild = DragTarget<BoatState>(
                   onWillAcceptWithDetails: (details) {
                     // Add placement validation next.
+                    
 
                     //bounds check + 
                     if(details.data.direction == BoatOrientation.Vertical)
