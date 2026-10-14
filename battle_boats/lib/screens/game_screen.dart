@@ -1,4 +1,5 @@
 import 'dart:async'; 
+import 'package:battle_boats/screens/end_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/board_grid.dart';
 import 'package:battle_boats/constants.dart';
@@ -44,6 +45,7 @@ class _GameScreenState extends State<GameScreen> {
   final List<int> _roundShots = [];
   // should be true from turn ended until round closes
   bool _submitting = false;
+  bool _endScreenShown = false;
   int _lastRound = 1;
 
   @override
@@ -83,6 +85,11 @@ class _GameScreenState extends State<GameScreen> {
 
   void _onGameState(GameState s) {
     if (!mounted) return;
+
+    final isFinished = s.status == 'finished';
+    final wasFinshed = _state?.status == 'finished';
+
+
     setState(() {
       // a rematch resets the game: finished -> placing
       final restarted = s.status == 'placing' && _state?.status == 'finished';
@@ -92,10 +99,30 @@ class _GameScreenState extends State<GameScreen> {
         _submitting = false;
         _lastRound = s.round;
       }
-      if (restarted) _placed.clear();
+      if (restarted) {_placed.clear(); _endScreenShown = false;}
       _state = s;
       _refreshBoards();
+     
     });
+
+    if(isFinished && !wasFinshed && !_endScreenShown)
+    {
+      _endScreenShown = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if(!mounted) return;
+
+        final isP1 = s.myRole == 'p1';
+
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => 
+            EndScreen(winPlayerNum: s.isDraw ?
+                 null : s.iWon ? (isP1 ? 1 : 2) 
+                               : (isP1 ? 2 : 1)
+                      )
+        ));
+      });
+    }
   }
 
     // rebuilds the two grids from the current phase
