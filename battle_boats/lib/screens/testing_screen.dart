@@ -67,6 +67,16 @@ class _TestingScreenState extends State<TestingScreen> {
                                 border: Border.all(color: Colors.black),
                                 borderRadius: BorderRadius.circular(8),
                               ),
+                              child: GestureDetector(
+                                onDoubleTap: () {
+                                  
+                                  {
+                                    setState(() {
+                                      placedBoats.remove(placed);
+                                    });
+                                  }
+                                },
+                              )
                             ),
                           ),
                       ],
