@@ -73,13 +73,15 @@ class _GameScreenState extends State<GameScreen> {
             Expanded(
               child: _BoardPanel(
                 label: 'Enemy waters',
-                child: BoardGrid(cells: _enemyCells, onCellTap: _fireAt),
+                mode: BoardMode.attack,
+                child: BoardGrid(cells: _enemyCells,
+                ),
               ),
             ),
             Expanded(
               child: _BoardPanel(
                 label: 'Your boats',
-                // no onCellTap, so your own board is read-only
+                mode: BoardMode.placement,
                 child: BoardGrid(cells: _myCells),
               ),
             ),
@@ -92,7 +94,7 @@ class _GameScreenState extends State<GameScreen> {
 
 // white box that holds one board like wireframe
 class _BoardPanel extends StatelessWidget {
-  const _BoardPanel({required this.label, required this.child});
+  const _BoardPanel({required this.label, required this.child, required BoardMode mode});
 
   final String label;
   final Widget child;

@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 
+enum BoatOrientation {Horizontal, Vertical}
+
+
+class BoatState 
+{
+  BoatState(this.length, this.direction);
+  int length;
+  BoatOrientation direction;
+}
+
 
 //https://api.flutter.dev/flutter/widgets/Draggable-class.html
 class DraggableBoat extends StatelessWidget {
-  const DraggableBoat({
+
+  DraggableBoat({
     super.key,
     required this.cellSize,
   });
@@ -14,8 +25,8 @@ class DraggableBoat extends StatelessWidget {
   Widget build(BuildContext context) {
     const boatLength = 3;
 
-    return Draggable<String>(
-      data: 'boat',
+    return Draggable<BoatState>(
+      data: BoatState(boatLength, BoatOrientation.Horizontal),
       feedback: Container(
         width: cellSize.width * boatLength,
         height: cellSize.height,
@@ -44,4 +55,13 @@ class DraggableBoat extends StatelessWidget {
       ),
     );
   }
+}
+
+class PlacedBoat {
+  PlacedBoat({required this.boat, required this.row, required this.col});
+
+  final BoatState boat;
+  final int row;
+  final int col;
+  
 }

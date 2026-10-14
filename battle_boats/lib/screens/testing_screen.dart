@@ -12,38 +12,69 @@ class TestingScreen extends StatefulWidget {
 }
 
 class _TestingScreenState extends State<TestingScreen> {
+  final List<PlacedBoat> placedBoats = [];
   final List<List<CellState>> mycells = List.generate(
     5,
     (_) => List.filled(5, CellState.water),
   );
 
-  Size? cellSize;
+  Size? cellSize = Size(50, 50);
+
+  void placeBoat(int row, int col, BoatState boat) {
+    setState(() {
+      placedBoats.add(PlacedBoat(boat: boat, row: row, col: col));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: SizedBox(
-          width: 800,
-          height: 1000,
+          width: 600,
+          height: 600,
           child: Column(
             children: [
-              
-                _BoardPanel(
-                  label: "TestLabel",
-                  child: BoardGrid(
-                    cells: mycells,
-                    onCellSizeChanged: (newSize) {
-                      if (cellSize != newSize) {
-                        setState(() => cellSize = newSize);
-                      }
-                    },
-                  ),
+                Expanded(child: 
+                  _BoardPanel(
+                    mode: BoardMode.placement,
+                    label: "TestLabel",
+                    child: SizedBox.square(
+                    dimension: 250, // temporary size for a 5x5 grid with 50px cells
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: BoardGrid(
+                            cells: mycells,
+                            mode: BoardMode.placement,
+                            onBoatDropped: placeBoat,
+                          ),
+                        ),
+
+                        for (final placed in placedBoats)
+                          Positioned(
+                            left: placed.col * cellSize!.width,
+                            top: placed.row * cellSize!.height,
+                            width: placed.boat.direction == BoatOrientation.Horizontal
+                                ? placed.boat.length * cellSize!.width
+                                : cellSize!.width,
+                            height: placed.boat.direction == BoatOrientation.Vertical
+                                ? placed.boat.length * cellSize!.height
+                                : cellSize!.height,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 121, 113, 113),
+                                border: Border.all(color: Colors.black),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
                 ),
-              if (cellSize != null)
-                DraggableBoat(
-                  cellSize: cellSize!,
-                ),
+              ),
+              DraggableBoat(cellSize: cellSize!)
             ],
           ),
         ),
@@ -53,7 +84,7 @@ class _TestingScreenState extends State<TestingScreen> {
 }
 
 class _BoardPanel extends StatelessWidget {
-  const _BoardPanel({required this.label, required this.child});
+  const _BoardPanel({required this.label, required this.child, required BoardMode mode});
 
   final String label;
   final Widget child;
@@ -65,7 +96,7 @@ class _BoardPanel extends StatelessWidget {
       margin: const EdgeInsets.all(12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.lightBlue,
+        color: Colors.white,
         border: Border.all(color: Colors.black54, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -73,7 +104,9 @@ class _BoardPanel extends StatelessWidget {
         children: [
           Text(label),
           const SizedBox(height: 8),
-          (Center(child: child)),
+          Expanded(
+            child: Center(child: child),
+          ),
         ],
       ),
     );
