@@ -1,10 +1,10 @@
-import 'dart:async'; 
+import 'dart:async';
 import 'package:battle_boats/screens/end_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/board_grid.dart';
 import 'package:battle_boats/constants.dart';
-import 'package:battle_boats/services/game_services.dart'; 
-import 'package:battle_boats/services/game_state.dart'; 
+import 'package:battle_boats/services/game_services.dart';
+import 'package:battle_boats/services/game_state.dart';
 // board size for editing, *this is now stored in lib/constants.dart
 // we can bring it from 5x5 to something fancier
 //const int boardSize = 5;
@@ -54,10 +54,10 @@ class _GameScreenState extends State<GameScreen> {
     // placeholder boards until logic happens
     _enemyCells = _emptyBoard();
     _myCells = _emptyBoard();
-   // start listening to the game document 
+   // start listening to the game document
     // _onGameState runs once right away and again whenever either player
     // changes anything. The placeholder boards and sample cells
-    // above are replaced only once the game is in the 'playing' phase 
+    // above are replaced only once the game is in the 'playing' phase
     _gameSub = _service.watchGame(widget.lobbyCode).listen(
       _onGameState,
       onError: (_) => _snack('Lost connection to the game.'),
@@ -72,13 +72,13 @@ class _GameScreenState extends State<GameScreen> {
     super.dispose();
   }
 
-  // new method, called with a fresh GameState every time the game document changes. 
+  // new method, called with a fresh GameState every time the game document changes.
   // s.status is one of:
   // 'waiting'  creator alone in the lobby
   // 'placing'  both players in, placing boats
   // 'playing'  both boards submitted, rounds in progress
   // 'finished' someone won (s.winner / s.iWon / s.isDraw)
-  // 
+  //
   //For now it only fills the two boards once the game is in 'playing' or 'finished'
   // until then. s.myCells() shows your boats plus the enemy's hits and misses
   // s.enemyCells(_roundShots) shows the shots you have fired.
@@ -88,39 +88,56 @@ class _GameScreenState extends State<GameScreen> {
 
     final isFinished = s.status == 'finished';
     final wasFinshed = _state?.status == 'finished';
-
+    // MOVED UP (it used to be inside setState): a rematch resets the game,
+    // so the status goes finished -> placing
+    final restarted = s.status == 'placing' && wasFinshed;
 
     setState(() {
-      // a rematch resets the game: finished -> placing
-      final restarted = s.status == 'placing' && _state?.status == 'finished';
       // new round (or restart): forget this round's local shots
       if (s.round != _lastRound || restarted) {
         _roundShots.clear();
         _submitting = false;
         _lastRound = s.round;
       }
-      if (restarted) {_placed.clear(); _endScreenShown = false;}
+      if (restarted) {
+        _placed.clear();
+        _endScreenShown = false;
+      }
       _state = s;
       _refreshBoards();
-     
     });
 
-    if(isFinished && !wasFinshed && !_endScreenShown)
-    {
+    // both players agreed to a rematch, so close the end screen and
+    // land back on this screen, ready to place boats again. popUntil stops
+    // at this screen's own route, so it does nothing if we're already here.
+    if (restarted) {
+      final gameRoute = ModalRoute.of(context);
+      Navigator.of(context).popUntil((route) => route == gameRoute);
+    }
+
+    if (isFinished && !wasFinshed && !_endScreenShown) {
       _endScreenShown = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if(!mounted) return;
+        if (!mounted) return;
 
         final isP1 = s.myRole == 'p1';
 
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => 
-            EndScreen(winPlayerNum: s.isDraw ?
-                 null : s.iWon ? (isP1 ? 1 : 2) 
-                               : (isP1 ? 2 : 1)
-                      )
-        ));
+          MaterialPageRoute(
+            builder: (_) => EndScreen(
+              winPlayerNum: s.isDraw
+                  ? null
+                  : s.iWon
+                      ? (isP1 ? 1 : 2)
+                      : (isP1 ? 2 : 1),
+              // rematch button asks firestore for a rematch. _run returns true
+              // if the request went through, false if it showed an error.
+              onRematch: () =>
+                  _run(() => _service.requestRematch(widget.lobbyCode)),
+            ),
+          ),
+        );
       });
     }
   }
@@ -182,9 +199,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
 
-    bool get _canPlace => 
+    bool get _canPlace =>
     _state != null && _state!.status == 'placing' && !_state!.iAmReady;
- 
+
    void _togglePlacement(int row, int col) {
     if (!_canPlace) return;
     final index = cellIndex(row, col);
@@ -220,12 +237,12 @@ class _GameScreenState extends State<GameScreen> {
     final index = cellIndex(row, col);
     // already fired here (in an earlier round or this one)
     if (s.myShots.contains(index) || _roundShots.contains(index)) return;
- 
+
     _roundShots.add(index);
     final hit = s.enemyBoard[index] == 1;
     // the shot shows immediately, before the round closes
     setState(_refreshBoards);
- 
+
     // a miss, or sinking the last enemy boat, ends my turn
     if (!hit || s.allEnemyHit(_roundShots)) {
       _endTurn();
@@ -260,13 +277,13 @@ class _GameScreenState extends State<GameScreen> {
     }
     return 'Game over';
   }
-  
+
    @override
   Widget build(BuildContext context) {
     final s = _state;
     // [FB-13] colour from the real role once we know it
     final isP1 = s != null ? s.myRole == 'p1' : widget.playerNumber == 1;
- 
+
     return Scaffold(
       // wireframe colors for P1 and P2
       backgroundColor:

@@ -2,11 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // the screen to show which player wins
-class EndScreen extends StatelessWidget {
-  const EndScreen({super.key, required this.winPlayerNum});
+class EndScreen extends StatefulWidget {
+  const EndScreen({super.key, required this.winPlayerNum, this.onRematch});
 
-  // we want the lobby creator to be P1 and the joiner P2
+  // we want the lobby creator to be P1 and the joiner P2 (null means a draw)
   final int? winPlayerNum;
+
+  // called when Rematch is tapped. Returns true if the request went through.
+  // null means no rematch is available, so the button stays disabled.
+  final Future<bool> Function()? onRematch;
+
+  @override
+  State<EndScreen> createState() => _EndScreenState();
+}
+
+class _EndScreenState extends State<EndScreen> {
+  // true once we have asked for a rematch and are waiting on the other player
+  bool _requested = false;
+
+  Future<void> _rematch() async {
+    final ok = await widget.onRematch!();
+    // if the other player asked first, the game resets and this screen closes
+    // before we get here, so check it is still on screen
+    if (ok && mounted) setState(() => _requested = true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +36,15 @@ class EndScreen extends StatelessWidget {
           children: [
             // displays winner with fancy font
             Text(
-              winPlayerNum == null ? 'Draw!' : 'Player $winPlayerNum wins!',
+              widget.winPlayerNum == null
+                  ? 'Draw!'
+                  : 'Player ${widget.winPlayerNum} wins!',
               style: GoogleFonts.blackOpsOne(
                 fontSize: 48,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 48),
-            // WIP rematch button for later
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 // green to match wireframe
@@ -33,10 +53,10 @@ class EndScreen extends StatelessWidget {
                 side: const BorderSide(color: Colors.black),
                 shape: const StadiumBorder(),
               ),
-              onPressed: () {
-                // still have to make the re queue stuff, do later
-              },
-              child: const Text('Rematch'),
+              // disabled once we've asked, or if there is no rematch callback
+              onPressed:
+                  (_requested || widget.onRematch == null) ? null : _rematch,
+              child: Text(_requested ? 'Waiting for opponent...' : 'Rematch'),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
@@ -47,12 +67,9 @@ class EndScreen extends StatelessWidget {
                 side: const BorderSide(color: Colors.black),
                 shape: const StadiumBorder(),
               ),
-              // https://api.flutter.dev/flutter/widgets/Navigator/popUntil.html
               // pop until instead of pushNamed to not create a new instance of the start screen
               // pop until brings to first, which would be start_screen when finished
               onPressed: () {
-                // print to make sure navigator works
-                // debugPrint('Back to Lobby tapped');
                 Navigator.popUntil(context, (route) => route.isFirst);
               },
               child: const Text('Back to Lobby'),
