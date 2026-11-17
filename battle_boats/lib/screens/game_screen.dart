@@ -1,10 +1,12 @@
 import 'dart:async';
+
 import 'package:battle_boats/screens/end_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:battle_boats/widgets/board_grid.dart';
 import 'package:battle_boats/constants.dart';
 import 'package:battle_boats/services/game_services.dart';
 import 'package:battle_boats/services/game_state.dart';
+
 // board size for editing, *this is now stored in lib/constants.dart
 // we can bring it from 5x5 to something fancier
 //const int boardSize = 5;
@@ -33,7 +35,7 @@ class _GameScreenState extends State<GameScreen> {
   // your own board, boats included
   late List<List<CellState>> _myCells;
 
-// talks to firestore
+  // talks to firestore
   final _service = GameServices();
   // subscription to the live game doc
   StreamSubscription<GameState>? _gameSub;
@@ -54,14 +56,16 @@ class _GameScreenState extends State<GameScreen> {
     // placeholder boards until logic happens
     _enemyCells = _emptyBoard();
     _myCells = _emptyBoard();
-   // start listening to the game document
+    // start listening to the game document
     // _onGameState runs once right away and again whenever either player
     // changes anything. The placeholder boards and sample cells
     // above are replaced only once the game is in the 'playing' phase
-    _gameSub = _service.watchGame(widget.lobbyCode).listen(
-      _onGameState,
-      onError: (_) => _snack('Lost connection to the game.'),
-    );
+    _gameSub = _service
+        .watchGame(widget.lobbyCode)
+        .listen(
+          _onGameState,
+          onError: (_) => _snack('Lost connection to the game.'),
+        );
   }
 
   // dispose added so the listener stops when this screen
@@ -129,8 +133,8 @@ class _GameScreenState extends State<GameScreen> {
               winPlayerNum: s.isDraw
                   ? null
                   : s.iWon
-                      ? (isP1 ? 1 : 2)
-                      : (isP1 ? 2 : 1),
+                  ? (isP1 ? 1 : 2)
+                  : (isP1 ? 2 : 1),
               // rematch button asks firestore for a rematch. _run returns true
               // if the request went through, false if it showed an error.
               onRematch: () =>
@@ -142,7 +146,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-    // rebuilds the two grids from the current phase
+  // rebuilds the two grids from the current phase
   void _refreshBoards() {
     final s = _state;
     if (s == null) return;
@@ -171,7 +175,6 @@ class _GameScreenState extends State<GameScreen> {
   // Use it like:
   // _run(() => _service.submitShots(widget.lobbyCode, shots));
 
-
   void _snack(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -189,7 +192,7 @@ class _GameScreenState extends State<GameScreen> {
       _snack('Something went wrong. Try again.');
     }
     return false;
-    }
+  }
 
   List<List<CellState>> _emptyBoard() {
     return List.generate(
@@ -198,11 +201,10 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  bool get _canPlace =>
+      _state != null && _state!.status == 'placing' && !_state!.iAmReady;
 
-    bool get _canPlace =>
-    _state != null && _state!.status == 'placing' && !_state!.iAmReady;
-
-   void _togglePlacement(int row, int col) {
+  void _togglePlacement(int row, int col) {
     if (!_canPlace) return;
     final index = cellIndex(row, col);
     setState(() {
@@ -215,7 +217,46 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-   // sends the chosen boats to Firestore
+  // a boat dragged from the tray lands on a cell (issue #17)
+  void _dropBoat(int row, int col) {
+    if (!_canPlace) return;
+    setState(() {
+      if (_placed.length < boatCount) _placed.add(cellIndex(row, col));
+      _refreshBoards();
+    });
+  }
+
+  // boats still waiting to be placed, shown as draggable squares
+  Widget _boatTray() {
+    final boat = Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.grey,
+        border: Border.all(color: Colors.black),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (var i = 0; i < boatCount - _placed.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Draggable<String>(
+                data: 'boat',
+                feedback: Opacity(opacity: 0.8, child: boat),
+                childWhenDragging: Opacity(opacity: 0.3, child: boat),
+                child: boat,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // sends the chosen boats to Firestore
   Future<void> _submitBoard() async {
     final board = List<int>.filled(boardCells, 0);
     for (final i in _placed) {
@@ -224,14 +265,14 @@ class _GameScreenState extends State<GameScreen> {
     await _run(() => _service.submitBoard(widget.lobbyCode, board));
   }
 
-      // playing phase: fire until you miss
+  // playing phase: fire until you miss
   bool get _canFire =>
       _state != null &&
       _state!.status == 'playing' &&
       !_state!.iSubmitted &&
       !_submitting;
 
-   void _fireAt(int row, int col) {
+  void _fireAt(int row, int col) {
     final s = _state;
     if (s == null || !_canFire) return;
     final index = cellIndex(row, col);
@@ -260,7 +301,7 @@ class _GameScreenState extends State<GameScreen> {
     if (!ok) _submitting = false;
   }
 
-// one line of text telling the player what is happening
+  // one line of text telling the player what is happening
   String _statusMessage() {
     final s = _state;
     if (s == null) return 'Connecting...';
@@ -278,7 +319,7 @@ class _GameScreenState extends State<GameScreen> {
     return 'Game over';
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     final s = _state;
     // [FB-13] colour from the real role once we know it
@@ -286,8 +327,7 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       // wireframe colors for P1 and P2
-      backgroundColor:
-          isP1 ? const Color(0xFFEED9FB) : const Color(0xFFDDDDF8),
+      backgroundColor: isP1 ? const Color(0xFFEED9FB) : const Color(0xFFDDDDF8),
       body: SafeArea(
         child: Column(
           children: [
@@ -311,10 +351,12 @@ class _GameScreenState extends State<GameScreen> {
                 child: BoardGrid(
                   cells: _myCells,
                   onCellTap: _canPlace ? _togglePlacement : null,
+                  onBoatDrop: _canPlace ? _dropBoat : null,
                 ),
               ),
             ),
             // the Submit button only exists while placing boats
+            if (_canPlace) _boatTray(),
             if (_canPlace)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),

@@ -6,15 +6,18 @@ enum CellState { water, boat, hit, miss }
 // want to draw a grid of cells, report what gets tapped
 // use variable to keep the grid size flexible
 class BoardGrid extends StatelessWidget {
-  const BoardGrid({super.key, required this.cells, this.onCellTap});
+  const BoardGrid({
+    super.key,
+    required this.cells,
+    this.onCellTap,
+    this.onBoatDrop,
+  });
 
-  // rows must be as long as the grid is tall
   final List<List<CellState>> cells;
-
-  // called with the tapped cell's row and column
-  // null makes the board read-only like your own board
   final void Function(int row, int col)? onCellTap;
 
+  // called when a boat is dragged and dropped on a cell. null = no dropping
+  final void Function(int row, int col)? onBoatDrop;
   @override
   Widget build(BuildContext context) {
     final size = cells.length;
@@ -34,7 +37,7 @@ class BoardGrid extends StatelessWidget {
         itemBuilder: (context, index) {
           final row = index ~/ size;
           final col = index % size;
-          return GestureDetector(
+          final cell = GestureDetector(
             onTap: onCellTap == null ? null : () => onCellTap!(row, col),
             child: Container(
               decoration: BoxDecoration(
@@ -42,6 +45,12 @@ class BoardGrid extends StatelessWidget {
                 border: Border.all(color: Colors.black),
               ),
             ),
+          );
+          if (onBoatDrop == null) return cell;
+          // cell also accepts dragged boats
+          return DragTarget<String>(
+            onAcceptWithDetails: (_) => onBoatDrop!(row, col),
+            builder: (context, candidate, rejected) => cell,
           );
         },
       ),
